@@ -23,11 +23,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import lib.ForgePlus.Equals.Conditional;
-import lib.ForgePlus.NetworkTableUtils.NTPublisher;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.NetworkSubsystem;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.AutoNetworkPublisher;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.NetworkCommand;
-import lib.ForgePlus.QuestNav.OculusNav;
 import lib.ForgePlus.Sim.SimulatedSubsystem;
 import lib.ForgePlus.Sim.Annotations.RealDevice;
 import lib.ForgePlus.SwerveLib.Odometer.FieldObject;
@@ -40,9 +38,6 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
 
     @RealDevice
     private final AHRS navX;
-
-    @RealDevice
-    public OculusNav Quest; 
 
     private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleLocations());
 
@@ -89,13 +84,6 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
         }else{
             navX = new AHRS(NavXComType.kMXP_SPI);
 
-            Quest = new OculusNav(
-                0.38,
-                0.0,
-                Rotation2d.kZero,
-                OculusNav.DEFAUL_DEVIATIONS
-            );
-
             translationPPgains = new PIDConstants(5.5, 0, 0); 
             rotationPPgains = new PIDConstants(2.93, 0.0, 0.001);
         }
@@ -131,7 +119,6 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
                 try{
                     Thread.sleep(1000);
                     navX.reset();
-                    Quest.resetPose();
                 } catch (Exception e){
         
                 }
@@ -218,10 +205,6 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
     @Override
     public void NetworkPeriodic(){
 
-        if (!isInSimulation()) {
-            Quest.update();
-        }
-
         for (var module : modules) {
             module.periodic();
         }
@@ -230,6 +213,8 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
             for (var module : modules) {
               module.stopModule();
         }}
+
+        publishOutput("Odometry/NormalPose", estimator.getEstimatedPosition());
 
         SwerveModulePosition[] modulePositions = getModulePositions();
         SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
@@ -252,9 +237,6 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
 
         estimator.update(rawGyroRotation, modulePositions);
 
-        publishOutput("Odometry/CorrectedPossed", Quest.getCorrectedPose());
-        publishOutput("Odometry/Quest", Quest.getHeadsetPose());
-
         handleSubsystemRealityLoop();
 
     }
@@ -262,14 +244,7 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
     @Override
     public void RealDevicesPeriodic(){
 
-        if(Quest.hasPose()){
-
-                estimator.addVisionMeasurement(
-                    Quest.getCorrectedPose(),
-                    Quest.getTimestamp(),
-                    Quest.getQuestDeviations().asVector());
-        
-        }
+   
 
     }
 

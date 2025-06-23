@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import gg.questnav.questnav.QuestNav;
 import lib.ForgePlus.Equals.Conditional;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.NetworkSubsystem;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.AutoNetworkPublisher;
@@ -63,6 +64,8 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
     public PathConstraints selectedConstraints;
 
     public ElasticField dashboardField;
+
+    public Quest nav = new Quest(0.38 ,0 ,0);
 
     public enum SwervePathConstraints{
         kFast, kNormal
@@ -237,7 +240,9 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
 
         estimator.update(rawGyroRotation, modulePositions);
 
-        handleSubsystemRealityLoop();
+        if (nav.getQuestNav().isConnected() && nav.getQuestNav().isTracking()) {
+            estimator.addVisionMeasurement(nav.getBotPose(), nav.getQuestNav().getDataTimestamp() , nav.dev.asVector());
+        }
 
     }
 

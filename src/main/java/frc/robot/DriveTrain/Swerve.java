@@ -12,6 +12,7 @@ import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -22,8 +23,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import gg.questnav.questnav.QuestNav;
 import lib.ForgePlus.Equals.Conditional;
+import lib.ForgePlus.Math.ArrayUtils;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.NetworkSubsystem;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.AutoNetworkPublisher;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.NetworkCommand;
@@ -65,7 +66,7 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
 
     public ElasticField dashboardField;
 
-    public Quest nav = new Quest(0.38 ,0 ,0);
+    public OculusPlus nav = new OculusPlus(new Transform2d(0.38,0, Rotation2d.kZero));
 
     public enum SwervePathConstraints{
         kFast, kNormal
@@ -122,11 +123,14 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
                 try{
                     Thread.sleep(1000);
                     navX.reset();
+                
                 } catch (Exception e){
         
                 }
               }).start();
         }
+
+        nav.resetPose();
 
         SwerveModuleStateSupplier[] suppliers = new SwerveModuleStateSupplier[4];
 
@@ -240,9 +244,11 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
 
         estimator.update(rawGyroRotation, modulePositions);
 
-        if (nav.getQuestNav().isConnected() && nav.getQuestNav().isTracking()) {
-            estimator.addVisionMeasurement(nav.getBotPose(), nav.getQuestNav().getDataTimestamp() , nav.dev.asVector());
+        if (nav.hasPose()) {
+            estimator.addVisionMeasurement(nav.fix(), nav.timestamp() , nav.dev.asVector());
         }
+
+        publishOutput("Odometry/BotPose", estimator.getEstimatedPosition());
 
     }
 
@@ -344,7 +350,7 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
 
     public void setPose(Pose2d pose) {
         estimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
-        //Quest.setPose(pose);
+        nav.setPose(pose);
     }
 
     @AutoNetworkPublisher(key = "Odometry/BotPose2D")

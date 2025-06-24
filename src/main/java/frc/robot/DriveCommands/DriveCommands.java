@@ -12,7 +12,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.DriveTrain.Swerve;
-import lib.ForgePlus.Math.Operator;
 import lib.ForgePlus.Math.Profiles.Control.MotionModelControl;
 import lib.ForgePlus.Math.Profiles.Control.PositionState;
 import lib.ForgePlus.Math.Profiles.ProfileGains.MotionModelGains;
@@ -30,7 +29,7 @@ public class DriveCommands {
         Rotation2d linearDirection = new Rotation2d(Math.atan2(y, x));
 
         // Square magnitude for more precise control
-        linearMagnitude = Operator.SQUARE.apply(linearMagnitude);
+        linearMagnitude = linearMagnitude * linearMagnitude;
 
         // Return new linear velocity
         return new Pose2d(new Translation2d(), linearDirection)
@@ -51,7 +50,7 @@ public class DriveCommands {
             double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 
             // Square values
-            omega = Math.copySign(Operator.SQUARE.apply(omega), omega);
+            omega = Math.copySign(omega * omega, omega);
 
             ChassisSpeeds speeds =
                 new ChassisSpeeds(

@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.util.List;
-
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -17,15 +15,12 @@ import frc.robot.DriveTrain.Swerve;
 import frc.robot.DriveTrain.Swerve.SwervePathConstraints;
 import lib.ForgePlus.NetworkTableUtils.NTPublisher;
 import lib.ForgePlus.NetworkTableUtils.NTSendableChooser;
-import lib.ForgePlus.RobotState.RobotLifeCycle;
 
 public class RobotContainer {
 
   private final Swerve chassis;
 
   private final CommandXboxController driver = new CommandXboxController(0);
-
-  private final List<RobotLifeCycle> lifecycleSubsystems;
 
   private PathPlannerAuto lateral;
   private PathPlannerAuto mover;
@@ -37,18 +32,13 @@ public class RobotContainer {
 
     chassis = new Swerve(SwervePathConstraints.kNormal);
 
-    lifecycleSubsystems = List.of(RobotState.getInstance()); //Add more subsystems here that implements RobotLifeCycle class
-
     NTPublisher.publish("Joysticks", "Driver1", driver);
   
     lateral = new PathPlannerAuto("lat");
     mover = new PathPlannerAuto("mover");
     inicio = new PathPlannerAuto("inicio");
 
-    autoChooser.setDefault("mover", mover).
-    add("inicio", inicio).
-    add("lat", lateral).
-    publish();
+    autoChooser.setDefault("mover", mover).add("inicio", inicio).add("lat", lateral).publish();
 
     configureBindings();
 
@@ -58,7 +48,7 @@ public class RobotContainer {
     
     chassis.setDefaultCommand(DriveCommands.joystickDrive(chassis, ()-> -driver.getLeftY(), ()-> -driver.getLeftX(), ()-> -driver.getRightX()));
 
-    driver.x().whileTrue(chassis.getPathFinder().toPoseCommand(new Pose2d(3.177, 4.031, Rotation2d.kZero)));
+    driver.x().whileTrue(chassis.getPathFinder().toPoseCommand(new Pose2d(0.53, 3.6, Rotation2d.kZero)));
 
   }
 
@@ -66,7 +56,4 @@ public class RobotContainer {
     return autoChooser.getSelected();
   }
 
-  public List<RobotLifeCycle> getLifeCycle() {
-    return lifecycleSubsystems;
-  }
 }

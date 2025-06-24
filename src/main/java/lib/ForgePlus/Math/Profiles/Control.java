@@ -3,7 +3,6 @@ package lib.ForgePlus.Math.Profiles;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import lib.ForgePlus.Math.Operator;
 import lib.ForgePlus.Math.Profiles.ProfileGains.CompleteFeedForwardGains;
 import lib.ForgePlus.Math.Profiles.ProfileGains.MotionModelGains;
 import lib.ForgePlus.Math.Profiles.ProfileGains.PIDGains;
@@ -37,14 +36,6 @@ public class Control {
 
         default ControlResult divide(double scalar){
             return ()-> getOutput() / scalar;
-        }
-
-        default ControlResult withOperation(Operator.UnaryOperation operation){
-            return ()-> operation.apply(getOutput());
-        }
-
-        default ControlResult withOperation(Operator.Operation operation, double b){
-            return ()-> operation.apply(getOutput(), b);
         }
 
         default ControlResult withDeadband(double threshold) {

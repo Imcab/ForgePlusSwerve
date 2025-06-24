@@ -4,11 +4,11 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import lib.ForgePlus.NetworkTableUtils.NTPublisher;
-import lib.ForgePlus.RobotState.RobotLifeCycle;
 
 public class Robot extends TimedRobot {
 
@@ -26,26 +26,27 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
 
+    NTPublisher.updateAllSendables();
+
+    NTPublisher.publish(NTPublisher.ROBOT, "Match/Time", DriverStation.getMatchTime());
+
   }
 
   @Override
   public void disabledInit() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::disabledInit);
+
   }
 
   @Override
   public void disabledPeriodic() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::disabledPeriodic);
   }
 
   @Override
   public void disabledExit() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::disabledExit);
   }
 
   @Override
   public void autonomousInit() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::autonomousInit);
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     if (m_autonomousCommand != null) {
@@ -56,17 +57,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::autonomousPeriodic);
   }
 
   @Override
   public void autonomousExit() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::autonomousExit);
   }
 
   @Override
   public void teleopInit() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::teleopInit);
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
@@ -74,12 +72,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::teleopPeriodic);
   }
 
   @Override
   public void teleopExit() {
-    m_robotContainer.getLifeCycle().forEach(RobotLifeCycle::teleopExit);
   }
 
   @Override

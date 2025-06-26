@@ -27,32 +27,59 @@ public class OculusPlus extends NetworkSubsystem{
     }
 
     @AutoNetworkPublisher(key = "questPose")
-    public Pose2d getBotPose(){
+    public Pose2d getPose(){
         return nav.getPose().transformBy(robotToQuest.inverse());
     }
 
     @AutoNetworkPublisher(key = "questPoseFix")
-    public Pose2d fix(){
-        Translation2d fixed = new Translation2d(-getBotPose().getX(), -getBotPose().getY());
-        return new Pose2d(fixed, getBotPose().getRotation());
+    public Pose2d getRobotPose(){
+        Translation2d fixed = new Translation2d(-getPose().getX(), -getPose().getY());
+        return new Pose2d(fixed, getPose().getRotation());
     }
 
-    public void setPose(Pose2d pose) {
-        Pose2d desired = pose.transformBy(robotToQuest);
-        nav.setPose(desired);
+    public void setPose(Pose2d pose){
+        Pose2d questPose = pose.transformBy(robotToQuest);
+
+        nav.setPose(questPose);
     }
 
     public void resetPose(){
         setPose(new Pose2d());
     }
 
+    public void setPoseSafe(Pose2d fieldPose) {
+        // Transforma del centro del robot al headset
+        Pose2d questPoseRaw = fieldPose.transformBy(robotToQuest);
+    
+        Translation2d trans = questPoseRaw.getTranslation();
+        Rotation2d rot = questPoseRaw.getRotation();
+    
+        // Clamp negativo a cero (por si el Quest no soporta coordenadas negativas)
+        double x = Math.max(0.0, trans.getX());
+        double y = Math.max(0.0, trans.getY());
+    
+        Pose2d clampedPose = new Pose2d(new Translation2d(x, y), rot);
+    
+        nav.setPose(clampedPose);
+    }
+    
+
     @NetworkCommand("reset")
     public Command resetOculus(){
         return Commands.runOnce(()-> {setPose(Pose2d.kZero);}, this);
     }
 
+    @NetworkCommand("test")
+    public Command test(){
+        return Commands.runOnce(()-> {setPose(new Pose2d(3.24, 4.04, new Rotation2d()));}, this);
+    }
+
     @Override
     public void NetworkPeriodic(){
+        
+    }
+
+    public void update(){
         nav.commandPeriodic();
     }
 

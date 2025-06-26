@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import lib.ForgePlus.Equals.Conditional;
-import lib.ForgePlus.Math.ArrayUtils;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.NetworkSubsystem;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.AutoNetworkPublisher;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.NetworkCommand;
@@ -96,8 +95,21 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
         modules[1] = new SwerveModule(1);
         modules[2] = new SwerveModule(2);
         modules[3] = new SwerveModule(3);
+    
+        if (!isInSimulation()) {
+            new Thread(() -> {
+                try{
+                    Thread.sleep(1000);
+                    navX.reset();
+                    nav.resetPose();
+                
+                } catch (Exception e){
+        
+                }
+              }).start();
+        }
 
-    AutoBuilder.configure(this::getPose,
+        AutoBuilder.configure(this::getPose,
         this::setPose,
         this::getChassisSpeeds,
         this::runVelocity,
@@ -117,20 +129,6 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
             this::setPose,
             0.02,
             this);
-        
-        if (!isInSimulation()) {
-            new Thread(() -> {
-                try{
-                    Thread.sleep(1000);
-                    navX.reset();
-                
-                } catch (Exception e){
-        
-                }
-              }).start();
-        }
-
-        nav.resetPose();
 
         SwerveModuleStateSupplier[] suppliers = new SwerveModuleStateSupplier[4];
 
@@ -212,6 +210,8 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
     @Override
     public void NetworkPeriodic(){
 
+        nav.update();
+
         for (var module : modules) {
             module.periodic();
         }
@@ -245,7 +245,7 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
         estimator.update(rawGyroRotation, modulePositions);
 
         if (nav.hasPose()) {
-            estimator.addVisionMeasurement(nav.fix(), nav.timestamp() , nav.dev.asVector());
+            //estimator.addVisionMeasurement(nav.getRobotPose(), nav.timestamp() , nav.dev.asVector());
         }
 
         publishOutput("Odometry/BotPose", estimator.getEstimatedPosition());
@@ -348,9 +348,14 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
       return kinematics.toChassisSpeeds(getModuleStates());
     } 
 
+    public OculusPlus o(){
+        return nav;
+    }
+
     public void setPose(Pose2d pose) {
         estimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
-        nav.setPose(pose);
+
+        nav.setPoseSafe(pose);
     }
 
     @AutoNetworkPublisher(key = "Odometry/BotPose2D")

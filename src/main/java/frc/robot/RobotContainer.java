@@ -9,6 +9,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.DriveCommands.DriveCommands;
 import frc.robot.DriveTrain.Swerve;
@@ -48,7 +49,8 @@ public class RobotContainer {
     
     chassis.setDefaultCommand(DriveCommands.joystickDrive(chassis, ()-> -driver.getLeftY(), ()-> -driver.getLeftX(), ()-> -driver.getRightX()));
 
-    driver.x().whileTrue(chassis.getPathFinder().toPoseCommand(new Pose2d(0.53, 3.6, Rotation2d.kZero)));
+    driver.b().whileTrue(Commands.runOnce(()-> {chassis.o().setPose(new Pose2d(3.24, 4.04,new Rotation2d()));}, chassis));
+    //driver.x().whileTrue(chassis.getPathFinder().toPoseCommand(new Pose2d(0.53, 3.6, Rotation2d.kZero)));
 
   }
 

@@ -242,11 +242,11 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
             rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
         }
 
-        estimator.update(rawGyroRotation, modulePositions);
-
         if (nav.hasPose()) {
-            //estimator.addVisionMeasurement(nav.getRobotPose(), nav.timestamp() , nav.dev.asVector());
+            estimator.addVisionMeasurement(nav.getRobotPose2(), nav.timestamp() , nav.dev.asVector());
         }
+
+        estimator.update(rawGyroRotation, modulePositions);
 
         publishOutput("Odometry/BotPose", estimator.getEstimatedPosition());
 
@@ -258,6 +258,7 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
    
 
     }
+
 
     @Override
     public void SimulationDevicesPeriodic(){}
@@ -353,9 +354,9 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
     }
 
     public void setPose(Pose2d pose) {
+        nav.setPose(pose);
         estimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
-
-        nav.setPoseSafe(pose);
+        
     }
 
     @AutoNetworkPublisher(key = "Odometry/BotPose2D")

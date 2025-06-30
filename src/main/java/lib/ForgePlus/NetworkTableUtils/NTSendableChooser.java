@@ -18,6 +18,10 @@ public class NTSendableChooser <T>{
         chooser = new SendableChooser<>();
     }
 
+    public SendableChooser<T> get(){
+        return chooser;
+    }
+
     public NTSendableChooser<T> setDefault(String name, T value) {
         hasDefault = true;
         this.defaultValue = Objects.requireNonNull(value, "Default value cannot be null");

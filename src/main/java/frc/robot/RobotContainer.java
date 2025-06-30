@@ -4,7 +4,11 @@
 
 package frc.robot;
 
+import org.opencv.aruco.Aruco;
+
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -40,7 +44,7 @@ public class RobotContainer {
     inicio = new PathPlannerAuto("inicio");
 
     autoChooser.setDefault("mover", mover).add("inicio", inicio).add("lat", lateral).publish();
-
+  
     configureBindings();
 
   }

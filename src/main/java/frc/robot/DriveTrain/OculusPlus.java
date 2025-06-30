@@ -37,6 +37,12 @@ public class OculusPlus extends NetworkSubsystem{
         return new Pose2d(fixed, getPose().getRotation());
     }
 
+    @AutoNetworkPublisher(key = "questPoseFix2")
+    public Pose2d getRobotPose2(){
+        Translation2d fixed = new Translation2d(Math.abs(getPose().getX()), Math.abs(getPose().getY()));
+        return new Pose2d(fixed, getPose().getRotation());
+    }
+
     public void setPose(Pose2d pose){
         Pose2d questPose = pose.transformBy(robotToQuest);
 
@@ -48,21 +54,21 @@ public class OculusPlus extends NetworkSubsystem{
     }
 
     public void setPoseSafe(Pose2d fieldPose) {
-        // Transforma del centro del robot al headset
-        Pose2d questPoseRaw = fieldPose.transformBy(robotToQuest);
-    
-        Translation2d trans = questPoseRaw.getTranslation();
-        Rotation2d rot = questPoseRaw.getRotation();
-    
-        // Clamp negativo a cero (por si el Quest no soporta coordenadas negativas)
-        double x = Math.max(0.0, trans.getX());
-        double y = Math.max(0.0, trans.getY());
-    
-        Pose2d clampedPose = new Pose2d(new Translation2d(x, y), rot);
-    
-        nav.setPose(clampedPose);
-    }
-    
+    // Transforma del centro del robot al headset
+    Pose2d questPoseRaw = fieldPose.transformBy(robotToQuest);
+
+    Translation2d trans = questPoseRaw.getTranslation();
+    Rotation2d rot = questPoseRaw.getRotation();
+
+    // Clamp negativo a cero (por si el Quest no soporta coordenadas negativas)
+    double x = Math.max(0.0, trans.getX());
+    double y = Math.max(0.0, trans.getY());
+
+    Pose2d clampedPose = new Pose2d(new Translation2d(x, y), rot);
+
+    nav.setPose(clampedPose);
+}
+
 
     @NetworkCommand("reset")
     public Command resetOculus(){

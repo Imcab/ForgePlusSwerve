@@ -12,7 +12,6 @@ import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -24,11 +23,11 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import lib.ForgePlus.Equals.Conditional;
-import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.NetworkSubsystem;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.AutoNetworkPublisher;
 import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.Annotations.NetworkCommand;
-import lib.ForgePlus.Sim.SimulatedSubsystem;
+import lib.ForgePlus.NetworkTableUtils.NetworkSubsystem.NetworkSubsystem;
 import lib.ForgePlus.Sim.Annotations.RealDevice;
+import lib.ForgePlus.Sim.SimulatedSubsystem;
 import lib.ForgePlus.SwerveLib.Odometer.FieldObject;
 import lib.ForgePlus.SwerveLib.PathFinding.PoseFinder;
 import lib.ForgePlus.SwerveLib.Utils.SwerveModuleStateSupplier;
@@ -65,7 +64,8 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
 
     public ElasticField dashboardField;
 
-    public OculusPlus nav = new OculusPlus(new Transform2d(0.38,0, Rotation2d.kZero));
+    public OculusPlus nav = new OculusPlus();
+    
 
     public enum SwervePathConstraints{
         kFast, kNormal
@@ -74,6 +74,7 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
         super("FORGESwerve", false);
 
         initializeSubsystemDevices();
+        nav.resetPose();
 
         this.selectedConstraints = Conditional.chooseBetween(
             SwerveConstants.normalPathConstraints,
@@ -115,7 +116,7 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
         this::runVelocity,
       new PPHolonomicDriveController(
         new PIDConstants(5.5, 0.0,0),
-         new PIDConstants(2.93, 0.0, 0.001)),
+         new PIDConstants(2.81, 0.0, 0.001)),
       getPathPlannerConfiguration(),
       () -> DriverStation.getAlliance().
         orElse(Alliance.Blue) == Alliance.Red,
@@ -206,11 +207,10 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
     public Rotation2d getnavXRotation(){
         return Rotation2d.fromDegrees(-getAngle());
     }
+
     
     @Override
     public void NetworkPeriodic(){
-
-        nav.update();
 
         for (var module : modules) {
             module.periodic();
@@ -241,23 +241,27 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
             Twist2d twist = kinematics.toTwist2d(moduleDeltas);
             rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
         }
-
+        nav.update();
+        
         if (nav.hasPose()) {
-            estimator.addVisionMeasurement(nav.getRobotPose2(), nav.timestamp() , nav.dev.asVector());
+            estimator.addVisionMeasurement(nav.getPose(), nav.timestamp() , nav.dev.asVector());
         }
+        
 
         estimator.update(rawGyroRotation, modulePositions);
 
         publishOutput("Odometry/BotPose", estimator.getEstimatedPosition());
+        publishOutput("Odometry/QuestPose", nav.getPose());
 
     }
+
+    
 
     @Override
     public void RealDevicesPeriodic(){
-
-   
-
     }
+
+    
 
 
     @Override
@@ -349,12 +353,9 @@ import lib.ForgePlus.SwerveLib.Visualizers.SwerveWidget;
       return kinematics.toChassisSpeeds(getModuleStates());
     } 
 
-    public OculusPlus o(){
-        return nav;
-    }
 
     public void setPose(Pose2d pose) {
-        nav.setPose(pose);
+        nav.setPoseQuest(pose);
         estimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
         
     }

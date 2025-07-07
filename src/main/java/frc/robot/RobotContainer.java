@@ -4,16 +4,9 @@
 
 package frc.robot;
 
-import org.opencv.aruco.Aruco;
-
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.util.PathPlannerLogging;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.DriveCommands.DriveCommands;
 import frc.robot.DriveTrain.Swerve;
@@ -30,6 +23,7 @@ public class RobotContainer {
   private PathPlannerAuto lateral;
   private PathPlannerAuto mover;
   private PathPlannerAuto inicio;
+  private PathPlannerAuto rotar;
 
   public NTSendableChooser<Command> autoChooser = new NTSendableChooser<>(NTPublisher.ROBOT, "AutoSelector");
 
@@ -42,8 +36,13 @@ public class RobotContainer {
     lateral = new PathPlannerAuto("lat");
     mover = new PathPlannerAuto("mover");
     inicio = new PathPlannerAuto("inicio");
+    rotar = new PathPlannerAuto("llegarRot");
 
-    autoChooser.setDefault("mover", mover).add("inicio", inicio).add("lat", lateral).publish();
+
+    autoChooser.setDefault("mover", mover).
+    add("inicio", inicio).
+    add("lat", lateral).add("rot", rotar).
+    publish();
   
     configureBindings();
 
@@ -53,9 +52,9 @@ public class RobotContainer {
     
     chassis.setDefaultCommand(DriveCommands.joystickDrive(chassis, ()-> -driver.getLeftY(), ()-> -driver.getLeftX(), ()-> -driver.getRightX()));
 
-    driver.b().whileTrue(Commands.runOnce(()-> {chassis.o().setPose(new Pose2d(3.24, 4.04,new Rotation2d()));}, chassis));
+    
     //driver.x().whileTrue(chassis.getPathFinder().toPoseCommand(new Pose2d(0.53, 3.6, Rotation2d.kZero)));
-
+    
   }
 
   public Command getAutonomousCommand() {
